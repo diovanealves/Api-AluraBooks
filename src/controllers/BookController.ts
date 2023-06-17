@@ -8,7 +8,7 @@ class BooksController {
       const result = await Books.find()
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).json({ message: 'Books Not Found' })
+      res.status(404).send('Books Not Found')
     }
   }
 
@@ -16,11 +16,10 @@ class BooksController {
     const { id } = req.params
     try {
       const result = await Books.findById(id)
-      if (!result)
-        return res.status(404).json({ message: 'Specific Book Not Found' })
+      if (!result) return res.status(404).send('Specific Book Not Found')
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).json({ message: 'Specific Book Not Found' })
+      res.status(404).send('Specific Book Not Found')
     }
   }
 
