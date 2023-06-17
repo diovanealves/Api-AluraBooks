@@ -8,5 +8,6 @@ router
   .get('/:id', BooksController.SearchById)
   .post('/', BooksController.CreateBook)
   .put('/:id', BooksController.EditBook)
+  .delete('/:id', BooksController.DeleteBook)
 
 export default router

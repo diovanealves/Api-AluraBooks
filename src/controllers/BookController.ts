@@ -48,6 +48,16 @@ class BooksController {
       res.status(404).send('Specific Book Not Found')
     }
   }
+
+  async DeleteBook(req: Request, res: Response) {
+    const { id } = req.params
+    try {
+      await Books.findByIdAndDelete(id)
+      res.status(200).send('Success in deleting the Book')
+    } catch (err) {
+      res.status(404).send('Error when deleting the Book')
+    }
+  }
 }
 
 export default new BooksController()
