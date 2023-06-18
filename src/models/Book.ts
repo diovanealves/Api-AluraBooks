@@ -10,8 +10,9 @@ const BookSchema = new Schema({
     required: true,
   },
   author: {
-    type: String,
+    type: Schema.Types.ObjectId,
     required: true,
+    ref: 'Author',
   },
   publisher: {
     type: String,

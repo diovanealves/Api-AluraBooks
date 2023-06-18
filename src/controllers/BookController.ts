@@ -5,7 +5,7 @@ import { BookSchemaCreate, BookSchemaUpdate } from '../interface/BookInterface'
 class BooksController {
   async SearchAll(req: Request, res: Response) {
     try {
-      const result = await Books.find()
+      const result = await Books.find().populate('author')
       res.status(200).json(result)
     } catch (err) {
       res.status(404).send('Books Not Found')
@@ -15,7 +15,7 @@ class BooksController {
   async SearchById(req: Request, res: Response) {
     const { id } = req.params
     try {
-      const result = await Books.findById(id)
+      const result = await Books.findById(id).populate('author')
       if (!result) return res.status(404).send('Specific Book Not Found')
       res.status(200).json(result)
     } catch (err) {
