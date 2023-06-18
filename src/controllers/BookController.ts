@@ -23,6 +23,30 @@ class BooksController {
     }
   }
 
+  async SearchByAuthor(req: Request, res: Response) {
+    const { author } = req.query
+    try {
+      const result = await Books.find({ author })
+      res.status(200).json(result)
+    } catch (err) {
+      res.status(404).send('Erro')
+    }
+  }
+
+  async SearchByPublisher(req: Request, res: Response) {
+    const { publisher } = req.query
+    try {
+      const result = await Books.find({ publisher }).populate('author')
+      if (result.length === 0)
+        return res
+          .status(404)
+          .send("Error when searching the publisher's books")
+      res.status(200).json(result)
+    } catch (err) {
+      res.status(404).send("Error when searching the publisher's books")
+    }
+  }
+
   async CreateBook(req: Request, res: Response) {
     const { title, description, author, publisher } = BookSchemaCreate.parse(
       req.body,
