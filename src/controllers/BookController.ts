@@ -26,10 +26,10 @@ class BooksController {
   async SearchByAuthor(req: Request, res: Response) {
     const { author } = req.query
     try {
-      const result = await Books.find({ author })
+      const result = await Books.find({ author }).populate('author')
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Erro')
+      res.status(404).send('Error When Searching For Books By This Author')
     }
   }
 
