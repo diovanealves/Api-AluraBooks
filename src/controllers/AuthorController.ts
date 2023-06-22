@@ -4,6 +4,7 @@ import {
   AuthorSchemaCreate,
   AuthorSchemaUpdate,
 } from '../interface/AuthorInterface'
+import { Books } from '../models/Book'
 
 class AuthorController {
   async SearchAll(req: Request, res: Response) {
@@ -51,7 +52,8 @@ class AuthorController {
   async DeleteAuthor(req: Request, res: Response) {
     const { id } = req.params
     try {
-      await Author.findByIdAndDelete(id)
+      await Author.findByIdAndDelete({ _id: id })
+      await Books.deleteMany({ author: id })
       res.status(200).send('Author Successfully Deleted')
     } catch (err) {
       res.status(404).send('Specific Author Not Found')
