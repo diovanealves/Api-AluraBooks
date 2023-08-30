@@ -1,39 +1,45 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { Books } from '../models/Book'
 import { BookSchemaCreate, BookSchemaUpdate } from '../interface/BookInterface'
+import { IdSchemaValidate } from '../interface/IdInterface'
 
 class BooksController {
-  async SearchAll(req: Request, res: Response) {
+  async SearchAll(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await Books.find().populate('author')
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Books Not Found')
+      next(err)
     }
   }
 
-  async SearchById(req: Request, res: Response) {
+  async SearchById(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
     try {
+      await IdSchemaValidate.validate(
+        { id },
+        { stripUnknown: true, abortEarly: false },
+      )
+
       const result = await Books.findById(id).populate('author')
       if (!result) return res.status(404).send('Specific Book Not Found')
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Specific Book Not Found')
+      next(err)
     }
   }
 
-  async SearchByAuthor(req: Request, res: Response) {
+  async SearchByAuthor(req: Request, res: Response, next: NextFunction) {
     const { author } = req.query
     try {
       const result = await Books.find({ author }).populate('author')
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Error When Searching For Books By This Author')
+      next(err)
     }
   }
 
-  async SearchByPublisher(req: Request, res: Response) {
+  async SearchByPublisher(req: Request, res: Response, next: NextFunction) {
     const { publisher } = req.query
     try {
       const result = await Books.find({ publisher }).populate('author')
@@ -43,43 +49,64 @@ class BooksController {
           .send("Error when searching the publisher's books")
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send("Error when searching the publisher's books")
+      next(err)
     }
   }
 
-  async CreateBook(req: Request, res: Response) {
-    const { title, description, author, publisher } = BookSchemaCreate.parse(
-      req.body,
-    )
+  async CreateBook(req: Request, res: Response, next: NextFunction) {
+    const BookData = req.body
     try {
-      await Books.create({ title, description, author, publisher })
-      res.status(200).send('Success in book creation')
+      await BookSchemaCreate.validate(BookData, {
+        stripUnknown: true,
+        abortEarly: false,
+      })
+      const result = await Books.create(BookData)
+      res.status(200).json(result)
     } catch (err) {
-      res.status(500).send('Error When Creating The Book')
+      next(err)
     }
   }
 
-  async EditBook(req: Request, res: Response) {
+  async EditBook(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
-    const { title, description, author, publisher } = BookSchemaUpdate.parse(
-      req.body,
-    )
+    const BookData = req.body
     try {
-      const updateData = { title, description, author, publisher }
-      await Books.findByIdAndUpdate(id, { $set: updateData })
-      res.status(200).send('Changes made successfully')
+      await IdSchemaValidate.validate(
+        { id },
+        { stripUnknown: true, abortEarly: false },
+      )
+
+      await BookSchemaUpdate.validate(BookData, {
+        stripUnknown: true,
+        abortEarly: false,
+      })
+
+      const updateData = {
+        title: BookData.title,
+        description: BookData.description,
+        author: BookData.author,
+        publisher: BookData.publisher,
+      }
+
+      const result = await Books.findByIdAndUpdate(id, { $set: updateData })
+      res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Specific Book Not Found')
+      next(err)
     }
   }
 
-  async DeleteBook(req: Request, res: Response) {
+  async DeleteBook(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
     try {
-      await Books.findByIdAndDelete(id)
-      res.status(200).send('Success in deleting the Book')
+      await IdSchemaValidate.validate(
+        { id },
+        { stripUnknown: true, abortEarly: false },
+      )
+
+      const result = await Books.findByIdAndDelete(id)
+      res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Error when deleting the Book')
+      next(err)
     }
   }
 }

@@ -1,62 +1,80 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { Author } from '../models/Author'
 import {
   AuthorSchemaCreate,
   AuthorSchemaUpdate,
 } from '../interface/AuthorInterface'
 import { Books } from '../models/Book'
+import { IdSchema } from '../interface/IdInterface'
 
 class AuthorController {
-  async SearchAll(req: Request, res: Response) {
+  async SearchAll(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await Author.find()
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Author Not Found')
+      next(err)
     }
   }
 
-  async SearchById(req: Request, res: Response) {
+  async SearchById(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
     try {
+      await IdSchema.validate({ id }, { stripUnknown: true, abortEarly: false })
+
       const result = await Author.findById(id)
-      if (!result) return res.status(404).send('Author Specify Not Found')
+      if (!result)
+        return res.status(404).json({ err: 'Author Specify Not Found' })
+      return res.status(200).json(result)
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async CreateAuthor(req: Request, res: Response, next: NextFunction) {
+    const { name, nationality } = req.body
+    try {
+      await AuthorSchemaCreate.validate(
+        { name, nationality },
+        { stripUnknown: true, abortEarly: false },
+      )
+
+      const result = await Author.create({ name, nationality })
       res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Author Specify Not Found')
+      next(err)
     }
   }
 
-  async CreateAuthor(req: Request, res: Response) {
-    const { name, nationality } = AuthorSchemaCreate.parse(req.body)
-    try {
-      await Author.create({ name, nationality })
-      res.status(200).send('Success In Creating an Author')
-    } catch (err) {
-      res.status(500).send('Error When Creating The Author')
-    }
-  }
-
-  async EditAuthor(req: Request, res: Response) {
+  async EditAuthor(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
-    const { name, nationality } = AuthorSchemaUpdate.parse(req.body)
+    const { name, nationality } = req.body
     try {
+      await IdSchema.validate({ id }, { stripUnknown: true, abortEarly: false })
+
+      await AuthorSchemaUpdate.validate(
+        { name, nationality },
+        { stripUnknown: true, abortEarly: false },
+      )
+
       const updateDate = { name, nationality }
-      await Author.findByIdAndUpdate(id, { $set: updateDate })
-      res.status(200).send('Author successfully edited')
+      const result = await Author.findByIdAndUpdate(id, { $set: updateDate })
+      res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('No specific author found')
+      next(err)
     }
   }
 
-  async DeleteAuthor(req: Request, res: Response) {
+  async DeleteAuthor(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
     try {
+      await IdSchema.validate({ id }, { stripUnknown: true, abortEarly: false })
+
       await Author.findByIdAndDelete({ _id: id })
-      await Books.deleteMany({ author: id })
-      res.status(200).send('Author Successfully Deleted')
+      const result = await Books.deleteMany({ author: id })
+      res.status(200).json(result)
     } catch (err) {
-      res.status(404).send('Specific Author Not Found')
+      next(err)
     }
   }
 }

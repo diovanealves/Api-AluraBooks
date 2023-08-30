@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import cors from 'cors'
 import dotenv from 'dotenv'
 
+import MiddlewareError from './middlewares/MiddlewareError'
 import BookRoutes from './routes/Book.routes'
 import AuthorRoutes from './routes/Author.routes'
 
@@ -18,6 +19,8 @@ mongoose
 
     app.use('/book', BookRoutes)
     app.use('/author', AuthorRoutes)
+
+    app.use(MiddlewareError)
 
     app.listen(process.env.PORT, () => {
       console.log(`🚀 Server is running on port: ${process.env.PORT}`)

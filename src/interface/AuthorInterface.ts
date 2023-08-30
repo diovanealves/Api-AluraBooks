@@ -1,11 +1,11 @@
-import z from 'zod'
+import * as yup from 'yup'
 
-export const AuthorSchemaCreate = z.object({
-  name: z.string(),
-  nationality: z.string(),
+export const AuthorSchemaCreate = yup.object({
+  name: yup.string().required('name is required'),
+  nationality: yup.string().required('nationality is required'),
 })
 
-export const AuthorSchemaUpdate = z.object({
-  name: z.string().optional(),
-  nationality: z.string().optional(),
+export const AuthorSchemaUpdate = yup.object({
+  name: yup.string().optional(),
+  nationality: yup.string().optional(),
 })
