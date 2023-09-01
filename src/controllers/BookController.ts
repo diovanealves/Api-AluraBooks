@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { Books } from '../models/Book'
 import { BookSchemaCreate, BookSchemaUpdate } from '../interface/BookInterface'
-import { IdSchemaValidate } from '../interface/IdInterface'
+import { IdSchema } from '../interface/IdInterface'
+import NotFound from '../Error/NotFound'
 
 class BooksController {
   async SearchAll(req: Request, res: Response, next: NextFunction) {
@@ -16,13 +17,14 @@ class BooksController {
   async SearchById(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
     try {
-      await IdSchemaValidate.validate(
-        { id },
-        { stripUnknown: true, abortEarly: false },
-      )
+      await IdSchema.validate({ id }, { stripUnknown: true, abortEarly: false })
 
       const result = await Books.findById(id).populate('author')
-      if (!result) return res.status(404).send('Specific Book Not Found')
+
+      if (!result) {
+        next(new NotFound('Specific book not found'))
+      }
+
       res.status(200).json(result)
     } catch (err) {
       next(err)
@@ -71,10 +73,7 @@ class BooksController {
     const { id } = req.params
     const BookData = req.body
     try {
-      await IdSchemaValidate.validate(
-        { id },
-        { stripUnknown: true, abortEarly: false },
-      )
+      await IdSchema.validate({ id }, { stripUnknown: true, abortEarly: false })
 
       await BookSchemaUpdate.validate(BookData, {
         stripUnknown: true,
@@ -89,6 +88,11 @@ class BooksController {
       }
 
       const result = await Books.findByIdAndUpdate(id, { $set: updateData })
+
+      if (!result) {
+        next(new NotFound('Book id not found'))
+      }
+
       res.status(200).json(result)
     } catch (err) {
       next(err)
@@ -98,12 +102,14 @@ class BooksController {
   async DeleteBook(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params
     try {
-      await IdSchemaValidate.validate(
-        { id },
-        { stripUnknown: true, abortEarly: false },
-      )
+      await IdSchema.validate({ id }, { stripUnknown: true, abortEarly: false })
 
       const result = await Books.findByIdAndDelete(id)
+
+      if (!result) {
+        next(new NotFound('Book id not found'))
+      }
+
       res.status(200).json(result)
     } catch (err) {
       next(err)

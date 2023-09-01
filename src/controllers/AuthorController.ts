@@ -6,6 +6,7 @@ import {
 } from '../interface/AuthorInterface'
 import { Books } from '../models/Book'
 import { IdSchema } from '../interface/IdInterface'
+import NotFound from '../Error/NotFound'
 
 class AuthorController {
   async SearchAll(req: Request, res: Response, next: NextFunction) {
@@ -59,6 +60,11 @@ class AuthorController {
 
       const updateDate = { name, nationality }
       const result = await Author.findByIdAndUpdate(id, { $set: updateDate })
+
+      if (!result) {
+        next(new NotFound('Author id not found'))
+      }
+
       res.status(200).json(result)
     } catch (err) {
       next(err)
@@ -72,6 +78,11 @@ class AuthorController {
 
       await Author.findByIdAndDelete({ _id: id })
       const result = await Books.deleteMany({ author: id })
+
+      if (!result) {
+        next(new NotFound('Author id not found'))
+      }
+
       res.status(200).json(result)
     } catch (err) {
       next(err)
