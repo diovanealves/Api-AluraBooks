@@ -6,6 +6,7 @@ import dotenv from 'dotenv'
 import MiddlewareError from './middlewares/MiddlewareError'
 import BookRoutes from './routes/Book.routes'
 import AuthorRoutes from './routes/Author.routes'
+import MiddlewareNotFound from './middlewares/MiddlewareNotFound'
 
 dotenv.config()
 
@@ -20,6 +21,7 @@ mongoose
     app.use('/book', BookRoutes)
     app.use('/author', AuthorRoutes)
 
+    app.use(MiddlewareNotFound)
     app.use(MiddlewareError)
 
     app.listen(process.env.PORT, () => {
