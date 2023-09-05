@@ -3,12 +3,34 @@ import { Books } from '../models/Book'
 import { BookSchemaCreate, BookSchemaUpdate } from '../interface/BookInterface'
 import { IdSchema } from '../interface/IdInterface'
 import NotFound from '../Error/NotFound'
+import IncorrectRequest from '../Error/IncorrectRequest'
 
 class BooksController {
   async SearchAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await Books.find().populate('author')
-      res.status(200).json(result)
+      const {
+        limited = 5,
+        page = 1,
+        sortBy = '_id',
+        sortOrder = -1,
+      } = req.query as {
+        limited?: number
+        page?: number
+        sortBy?: string
+        sortOrder?: 1 | -1
+      }
+
+      if (limited > 0 && page > 0) {
+        const result = await Books.find()
+          .sort({ [sortBy]: sortOrder })
+          .skip((page - 1) * limited)
+          .limit(limited)
+          .populate('author')
+
+        res.status(200).json(result)
+      } else {
+        next(new IncorrectRequest())
+      }
     } catch (err) {
       next(err)
     }
@@ -31,24 +53,20 @@ class BooksController {
     }
   }
 
-  async SearchByAuthor(req: Request, res: Response, next: NextFunction) {
-    const { author } = req.query
+  async SearchByFilter(req: Request, res: Response, next: NextFunction) {
+    const { publisher, title } = req.query
     try {
-      const result = await Books.find({ author }).populate('author')
-      res.status(200).json(result)
-    } catch (err) {
-      next(err)
-    }
-  }
+      const query = {
+        title: new RegExp(title as string, 'i'),
+        ...(publisher && { publisher }),
+      }
 
-  async SearchByPublisher(req: Request, res: Response, next: NextFunction) {
-    const { publisher } = req.query
-    try {
-      const result = await Books.find({ publisher }).populate('author')
-      if (result.length === 0)
-        return res
-          .status(404)
-          .send("Error when searching the publisher's books")
+      const result = await Books.find(query).populate('author')
+
+      if (result.length === 0) {
+        res.status(200).json([])
+      }
+
       res.status(200).json(result)
     } catch (err) {
       next(err)
