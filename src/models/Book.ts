@@ -18,6 +18,10 @@ const BookSchema = new Schema({
     type: String,
     required: true,
   },
+  numberPages: {
+    type: Number,
+    required: true,
+  },
 })
 
 export const Books = model('Book', BookSchema)
