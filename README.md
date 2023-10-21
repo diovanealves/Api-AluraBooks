@@ -5,7 +5,7 @@
 | :placard: Vitrine.Dev |                                                        |
 | --------------------- | ------------------------------------------------------ |
 | :sparkles: Nome       | **API - AluraBooks**                                   |
-| :label: Tecnologias   | Spring-Boot, Lombok, H2, Bcrypt                        |
+| :label: Tecnologias   | NodeJS, Express, Mongoose, Yup, Cors                   |
 | :rocket: URL          | https://github.com/diovanealves/Api-AluraBooks         |
 | :fire: Repositorio    | https://github.com/diovanealves/Api-AluraBooks         |
 
